@@ -20,7 +20,12 @@ const app = express();
 const server = http.createServer(app);
 const mdb = await dbConnect("mongodb://localhost:27017/one-vichaar");
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:3000", // ✅ Set your frontend URL
+    credentials: true, // ✅ Allow credentials (cookies, auth headers)
+  })
+);
 app.use(cookieParser());
 app.use(express.json());
 
@@ -33,7 +38,6 @@ wss.on("connection", (ws, req) => {
   console.log("New client connected:", req.url);
   setupWSConnection(ws, req);
 });
-
 
 setPersistence({
   bindState: async (docName, ydoc) => {

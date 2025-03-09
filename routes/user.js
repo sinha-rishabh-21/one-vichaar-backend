@@ -1,77 +1,26 @@
-import express from 'express';
-import User from '../models/User.js';
-import bcrypt from 'bcryptjs';
-import { authenticate, generateToken } from '../middleware/jwtAuth.js';
+import express from "express";
+import { authenticate } from "../middleware/jwtAuth.js";
+import handlerLogin from "../controller/handlerLogin.js";
+import handlerRegister from "../controller/handlerRegister.js";
+import handlerDeleteUser from "../controller/handlerDeleteUser.js";
+import handlerSaveDoc from "../controller/handlerSaveDoc.js";
+import handlerListDocs from "../controller/handlerListDocs.js";
 
 const router = express.Router();
 
-router.get('/',authenticate,(req,res)=>{
-    return res.send('Hello from user route');
-})
+router.get("/", authenticate, (req, res) => {
+  return res.send("Hello from user route");
+});
 
 //redirect to login in frontend when register is succcessful
-router.post('/register', async (req,res) => {
-    try {
-      const { name, email, password } = req.body;
+router.post("/register", handlerRegister);
 
-      const existingUser = await User.findOne({ email });
-      if (existingUser)
-        return res.status(400).json({ error: "Email already in use" });
+router.post("/login", handlerLogin);
 
-      const newUser = new User({ name, email, password });
-      await newUser.save();
+router.delete("/deleteUser", authenticate, handlerDeleteUser);
 
-      res.status(201).json({ message: "User registered successfully!" });
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
-})
+router.put("/saveDoc", authenticate, handlerSaveDoc);
 
-router.post("/login", async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ error: "Invalid credentials" });
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ error: "Invalid credentials" });
-
-    res.cookie("token",generateToken(email),{
-        httpOnly:true, 
-        sameSite: "strict", // Prevents CSRF attacks
-        maxAge: 3600000
-    });
-
-    res.status(200).json({ message: "Login successful!" });
-
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-router.delete("/deleteUser",authenticate, async (req, res) => {
-  const body = req.body;
-  if (!body.email || !body.password) {
-    return res.status(400).send("Fill all the required fields");
-  }
-
-  const userTodelete = await User.findOne({
-    email: body.email,
-  });
-
-  if (!userTodelete) {
-          return res.status(404).send("User not found");
-        }
-
-  const isMatch = await bcrypt.compare(body.password, userTodelete.password);
-
-    if (isMatch) {
-        await User.findByIdAndDelete(userTodelete._id);
-        return res.status(200).json("User deleted successfully");
-    } else {
-        return res.status(400).send("Invalid credentials");
-    }
-});
+router.get("/listDocs", authenticate, handlerListDocs);
 
 export default router;
