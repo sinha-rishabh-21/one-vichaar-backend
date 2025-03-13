@@ -5,6 +5,7 @@ import handlerRegister from "../controller/handlerRegister.js";
 import handlerDeleteUser from "../controller/handlerDeleteUser.js";
 import handlerSaveDoc from "../controller/handlerSaveDoc.js";
 import handlerListDocs from "../controller/handlerListDocs.js";
+import handlerDeleteDoc from "../controller/handlerDeleteDoc.js";
 
 const router = express.Router();
 
@@ -22,5 +23,7 @@ router.delete("/deleteUser", authenticate, handlerDeleteUser);
 router.put("/saveDoc", authenticate, handlerSaveDoc);
 
 router.get("/listDocs", authenticate, handlerListDocs);
+
+router.delete("/deleteDoc/:id", handlerDeleteDoc);
 
 export default router;
